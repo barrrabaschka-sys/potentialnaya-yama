@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Дорожная карта — потенциальная яма</title>
+  <script>
+    window.MathJax = {
+      tex: {inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']]},
+      options: {skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']}
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      --blue: #315f9d;
+      --blue-dark: #234777;
+      --blue-light: #eaf2fc;
+      --ink: #243247;
+      --muted: #68778c;
+      --line: #dce5f0;
+      --green: #dff3e8;
+      --green-ink: #236747;
+      --white: #fff;
+      --bg: #f4f7fb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.6;
+    }
+    .container { width: min(980px, 92%); margin: 0 auto; }
+    header {
+      background: linear-gradient(135deg, #244b7c, #477db8);
+      color: white;
+      padding: 48px 0 42px;
+    }
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-size: 12px;
+      opacity: .8;
+      font-weight: bold;
+    }
+    h1 { font-size: clamp(28px, 5vw, 43px); line-height: 1.15; margin: 12px 0; }
+    header p { max-width: 700px; margin: 0; color: #e8f0fa; font-size: 17px; }
+    main { padding: 28px 0 60px; }
+    .panel, .step, .final-card, .quiz {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 5px 20px rgba(35, 71, 119, .05);
+    }
+    .panel { padding: 22px; margin-bottom: 22px; }
+    h2 { font-size: 23px; margin: 0 0 12px; }
+    h3 { margin: 0 0 8px; font-size: 19px; }
+    .muted { color: var(--muted); }
+    .condition { display: grid; grid-template-columns: 1.2fr .8fr; gap: 20px; align-items: center; }
+    .diagram {
+      background: #f7faff; border: 1px solid var(--line);
+      border-radius: 14px; padding: 10px;
+    }
+    .diagram svg { width: 100%; height: auto; display: block; }
+    .tag {
+      display: inline-block; padding: 5px 10px; border-radius: 30px;
+      background: var(--blue-light); color: var(--blue-dark);
+      font-size: 12px; font-weight: bold; margin-bottom: 8px;
+    }
+    .progress-wrap { margin: 24px 0 18px; }
+    .progress-label { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--muted); }
+    .progress { height: 9px; background: #e3eaf3; border-radius: 20px; overflow: hidden; margin-top: 8px; }
+    .progress-fill { height: 100%; width: 0%; background: var(--blue); transition: width .25s; }
+    .step { padding: 24px; display: none; }
+    .step.active { display: block; animation: appear .25s ease; }
+    @keyframes appear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .step-number {
+      width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+      background: var(--blue-light); color: var(--blue-dark); font-weight: bold; margin-bottom: 12px;
+    }
+    .formula {
+      background: #f4f8fd; border-left: 4px solid var(--blue);
+      border-radius: 8px; padding: 16px; margin: 15px 0; overflow-x: auto;
+      font-size: 18px;
+    }
+    .explain { background: #fff9e9; border: 1px solid #f1e4bd; border-radius: 10px; padding: 13px 15px; margin-top: 14px; }
+    .controls { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+    button {
+      border: 0; border-radius: 10px; padding: 12px 19px; font-size: 15px;
+      font-weight: bold; cursor: pointer; transition: .2s;
+    }
+    button:disabled { opacity: .4; cursor: not-allowed; }
+    .primary { color: white; background: var(--blue); }
+    .primary:hover { background: var(--blue-dark); }
+    .secondary { background: #edf1f6; color: var(--ink); }
+    .secondary:hover { background: #e1e8f1; }
+    .all-steps { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 14px; }
+    .dot {
+      width: 30px; height: 30px; padding: 0; border-radius: 50%;
+      background: #e7edf5; color: #52647b; font-size: 13px;
+    }
+    .dot.current { background: var(--blue); color: white; }
+    .dot.done { background: #d9eee3; color: var(--green-ink); }
+    .final-card { padding: 23px; margin-top: 22px; border-color: #cfe7d9; }
+    .final-card h2 { color: var(--green-ink); }
+    .final-formula { background: #eff9f3; border-radius: 10px; padding: 14px; margin: 12px 0; overflow-x: auto; }
+    .quiz { padding: 22px; margin-top: 22px; }
+    .quiz-question { font-weight: bold; margin: 12px 0; }
+    .option { display: block; padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; margin: 8px 0; cursor: pointer; }
+    .option:hover { background: #f5f8fc; }
+    .feedback { margin-top: 12px; font-weight: bold; }
+    .small-note { font-size: 13px; color: var(--muted); }
+    footer { text-align: center; padding: 22px; color: var(--muted); font-size: 13px; }
+    @media (max-width: 700px) {
+      .condition { grid-template-columns: 1fr; }
+      header { padding: 35px 0; }
+      .step, .panel, .quiz, .final-card { padding: 18px; }
+      .controls button { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="eyebrow">Интерактивная учебная дорожная карта</div>
+      <h1>Потенциальная яма</h1>
+      <p>Пошаговый алгоритм решения задачи о частице в бесконечно глубокой потенциальной яме.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel condition">
+      <div>
+        <span class="tag">Исходная задача</span>
+        <h2>Условие задачи</h2>
+        <p>Частица массой \(m\) находится в бесконечно глубокой прямоугольной потенциальной яме шириной \(a\). Найти энергии стационарных состояний частицы и соответствующие им волновые функции.</p>
+        <p class="muted"><b>Дано:</b> масса частицы \(m\), ширина ямы \(a\).<br><b>Найти:</b> \(E_n\) и \(\Psi_n(x)\).</p>
+      </div>
+      <div class="diagram">
+        <svg viewBox="0 0 420 235" role="img" aria-label="Схема бесконечной потенциальной ямы">
+          <line x1="35" y1="185" x2="390" y2="185" stroke="#34445a" stroke-width="2"/>
+          <line x1="65" y1="185" x2="65" y2="25" stroke="#315f9d" stroke-width="7"/>
+          <line x1="315" y1="185" x2="315" y2="25" stroke="#315f9d" stroke-width="7"/>
+          <line x1="65" y1="185" x2="315" y2="185" stroke="#315f9d" stroke-width="2"/>
+          <path d="M65 185 L65 42 L315 42 L315 185" fill="none" stroke="#315f9d" stroke-width="2" stroke-dasharray="5 5"/>
+          <text x="190" y="165" text-anchor="middle" font-size="17" fill="#315f9d">V(x) = 0</text>
+          <text x="65" y="207" text-anchor="middle" font-size="14" fill="#34445a">0</text>
+          <text x="315" y="207" text-anchor="middle" font-size="14" fill="#34445a">a</text>
+          <text x="190" y="228" text-anchor="middle" font-size="13" fill="#68778c">координата x</text>
+          <text x="48" y="22" text-anchor="middle" font-size="13" fill="#315f9d">∞</text>
+          <text x="332" y="22" text-anchor="middle" font-size="13" fill="#315f9d">∞</text>
+          <text x="20" y="100" font-size="13" fill="#68778c">V</text>
+        </svg>
+      </div>
+    </section>
+
+    <section class="progress-wrap">
+      <div class="progress-label"><span id="stepLabel">Шаг 1 из 7</span><span id="percentLabel">14%</span></div>
+      <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="all-steps" id="stepDots" aria-label="Переход к шагам"></div>
+    </section>
+
+    <section id="steps">
+      <article class="step active">
+        <div class="step-number">1</div>
+        <h2>Анализируем условие</h2>
+        <p>Сначала выписываем известные величины и определяем, что требуется найти.</p>
+        <div class="formula">
+          \[\text{Дано: }m,\ a\qquad \text{Найти: }E_n,\ \Psi_n(x)\]
+        </div>
+        <p>Так как яма бесконечно глубокая, частица находится только внутри промежутка от \(0\) до \(a\). За пределами ямы волновая функция равна нулю.</p>
+        <div class="explain"><b>Важно:</b> в этой задаче рассматривается одномерное движение частицы.</div>
+      </article>
+
+      <article class="step">
+        <div class="step-number">2</div>
+        <h2>Записываем потенциальную энергию</h2>
+        <p>Принимаем дно ямы за нулевой уровень энергии. Внутри ямы потенциальная энергия равна нулю, а за её пределами бесконечна.</p>
+        <div class="formula">
+          \[
+          V(x)=
+          \begin{cases}
+          0, & 0&lt;x&lt;a,\\
+          +\infty, & x\leq 0,\ x\geq a.
+          \end{cases}
+          \]
+        </div>
+        <div class="explain">Поэтому решать уравнение будем только внутри ямы, где \(0&lt;x&lt;a\).</div>
+      </article>
+
+      <article class="step">
+        <div class="step-number">3</div>
+        <h2>Записываем уравнение Шрёдингера</h2>
+        <p>Внутри ямы \(V(x)=0\), поэтому стационарное уравнение Шрёдингера принимает вид:</p>
+        <div class="formula">
+          \[
+          -\frac{\hbar^2}{2m}\frac{d^2\Psi(x)}{dx^2}=E\Psi(x).
+          \]
+        </div>
+        <p>Введём обозначение:</p>
+        <div class="formula">
+          \[
+          k^2=\frac{2mE}{\hbar^2}.
+          \]
+          \[
+          \Psi''(x)+k^2\Psi(x)=0.
+          \]
+        </div>
+        <div class="explain">Это дифференциальное уравнение, общее решение которого содержит синус и косинус.</div>
+      </article>
+
+      <article class="step">
+        <div class="step-number">4</div>
+        <h2>Используем граничные условия</h2>
+        <p>На бесконечно высоких стенках частица находиться не может. Поэтому волновая функция на границах ямы равна нулю:</p>
+        <div class="formula">
+          \[\Psi(0)=0,\qquad \Psi(a)=0.\]
+        </div>
+        <p>Общее решение уравнения:</p>
+        <div class="formula">
+          \[\Psi(x)=A\sin(kx)+B\cos(kx).\]
+        </div>
+        <p>Из условия \(\Psi(0)=0\) получаем \(B=0\). Значит:</p>
+        <div class="formula">
+          \[\Psi(x)=A\sin(kx).\]
+        </div>
+        <div class="explain">Второе граничное условие понадобится, чтобы определить допустимые значения \(k\).</div>
+      </article>
+
+      <article class="step">
+        <div class="step-number">5</div>
+        <h2>Находим допустимые значения волнового числа</h2>
+        <p>Подставляем \(x=a\) во второе граничное условие:</p>
+        <div class="formula">
+          \[A\sin(ka)=0.\]
+        </div>
+        <p>Ненулевое решение возможно, если:</p>
+        <div class="formula">
+          \[\sin(ka)=0\quad\Rightarrow\quad ka=\pi n.\]
+          \[k_n=\frac{\pi n}{a},\qquad n=1,2,3,\ldots\]
+        </div>
+        <div class="explain">Число \(n\) — квантовое число. Оно принимает только положительные целые значения.</div>
+      </article>
+
+      <article class="step">
+        <div class="step-number">6</div>
+        <h2>Находим энергии стационарных состояний</h2>
+        <p>Используем связь волнового числа с энергией:</p>
+        <div class="formula">
+          \[k^2=\frac{2mE}{\hbar^2}
+          \quad\Rightarrow\quad
+          E=\frac{\hbar^2k^2}{2m}.\]
+        </div>
+        <p>Подставляем найденное значение \(k_n=\frac{\pi n}{a}\):</p>
+        <div class="formula">
+          \[
+          \boxed{E_n=\frac{\pi^2\hbar^2n^2}{2ma^2}}
+          \]
+        </div>
+        <div class="explain">Энергия принимает не любые значения, а только отдельные разрешённые значения. Это называется квантованием энергии.</div>
+      </article>
+
+      <article class="step">
+        <div class="step-number">7</div>
+        <h2>Находим волновую функцию</h2>
+        <p>Подставляем \(k_n\) в найденное ранее выражение:</p>
+        <div class="formula">
+          \[\Psi_n(x)=A\sin\left(\frac{\pi nx}{a}\right).\]
+        </div>
+        <p>Используем условие нормировки, чтобы определить постоянную \(A\):</p>
+        <div class="formula">
+          \[\int_0^a|\Psi_n(x)|^2dx=1
+          \quad\Rightarrow\quad A=\sqrt{\frac{2}{a}}.\]
+        </div>
+        <div class="formula">
+          \[
+          \boxed{\Psi_n(x)=\sqrt{\frac{2}{a}}\sin\left(\frac{\pi nx}{a}\right)}
+          \]
+        </div>
+        <div class="explain">Получили нормированные волновые функции стационарных состояний частицы.</div>
+      </article>
+    </section>
+
+    <div class="controls">
+      <button class="secondary" id="prevBtn" disabled>← Назад</button>
+      <button class="primary" id="nextBtn">Следующий шаг →</button>
+    </div>
+
+    <section class="final-card" id="finalCard" hidden>
+      <h2>Итоговое решение</h2>
+      <p>Для бесконечно глубокой прямоугольной потенциальной ямы шириной \(a\) получаем:</p>
+      <div class="final-formula">
+        <b>Энергии:</b>
+        \[E_n=\frac{\pi^2\hbar^2n^2}{2ma^2},\quad n=1,2,3,\ldots\]
+      </div>
+      <div class="final-formula">
+        <b>Волновые функции:</b>
+        \[\Psi_n(x)=\sqrt{\frac{2}{a}}\sin\left(\frac{\pi nx}{a}\right),\quad 0&lt;x&lt;a.\]
+      </div>
+      <p class="small-note">За пределами ямы \(\Psi_n(x)=0\).</p>
+      <button class="primary" onclick="restart()">Пройти дорожную карту ещё раз</button>
+    </section>
+
+    <section class="quiz">
+      <h2>Проверка знаний</h2>
+      <p class="muted">Выбери правильный ответ на каждый вопрос.</p>
+      <div class="quiz-question">1. Чему равна потенциальная энергия внутри ямы?</div>
+      <label class="option"><input type="radio" name="q1" value="a"> Бесконечности</label>
+      <label class="option"><input type="radio" name="q1" value="b"> Нулю</label>
+      <label class="option"><input type="radio" name="q1" value="c"> Всегда равна энергии частицы</label>
+      <div class="quiz-question">2. Чему равна волновая функция на стенках ямы?</div>
+      <label class="option"><input type="radio" name="q2" value="a"> Единице</label>
+      <label class="option"><input type="radio" name="q2" value="b"> Бесконечности</label>
+      <label class="option"><input type="radio" name="q2" value="c"> Нулю</label>
+      <div class="quiz-question">3. Какие значения может принимать квантовое число \(n\)?</div>
+      <label class="option"><input type="radio" name="q3" value="a"> Только положительные целые</label>
+      <label class="option"><input type="radio" name="q3" value="b"> Любые действительные</label>
+      <label class="option"><input type="radio" name="q3" value="c"> Только отрицательные</label>
+      <button class="primary" id="checkQuiz">Проверить ответы</button>
+      <div class="feedback" id="quizFeedback" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer>Учебная дорожная карта по квантовой механике</footer>
+
+  <script>
+    const steps = Array.from(document.querySelectorAll('.step'));
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const progressFill = document.getElementById('progressFill');
+    const stepLabel = document.getElementById('stepLabel');
+    const percentLabel = document.getElementById('percentLabel');
+    const dotsBox = document.getElementById('stepDots');
+    const finalCard = document.getElementById('finalCard');
+    let current = 0;
+
+    function buildDots() {
+      dotsBox.innerHTML = '';
+      steps.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'dot';
+        dot.textContent = i + 1;
+        dot.type = 'button';
+        dot.title = 'Перейти к шагу ' + (i + 1);
+        dot.addEventListener('click', () => showStep(i));
+        dotsBox.appendChild(dot);
+      });
+    }
+
+    function showStep(index) {
+      current = Math.max(0, Math.min(index, steps.length - 1));
+      steps.forEach((step, i) => step.classList.toggle('active', i === current));
+      const percent = Math.round(((current + 1) / steps.length) * 100);
+      progressFill.style.width = percent + '%';
+      stepLabel.textContent = `Шаг ${current + 1} из ${steps.length}`;
+      percentLabel.textContent = percent + '%';
+      prevBtn.disabled = current === 0;
+      nextBtn.textContent = current === steps.length - 1 ? 'Завершить ✓' : 'Следующий шаг →';
+      document.querySelectorAll('.dot').forEach((dot, i) => {
+        dot.classList.toggle('current', i === current);
+        dot.classList.toggle('done', i < current);
+      });
+      if (current === steps.length - 1) finalCard.hidden = false;
+      if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+    }
+
+    prevBtn.addEventListener('click', () => showStep(current - 1));
+    nextBtn.addEventListener('click', () => {
+      if (current < steps.length - 1) showStep(current + 1);
+      else {
+        finalCard.hidden = false;
+        finalCard.scrollIntoView({behavior: 'smooth', block: 'start'});
+      }
+    });
+
+    function restart() {
+      finalCard.hidden = true;
+      showStep(0);
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    document.getElementById('checkQuiz').addEventListener('click', () => {
+      const answers = {q1: 'b', q2: 'c', q3: 'a'};
+      let score = 0;
+      let unanswered = false;
+      for (const [name, correct] of Object.entries(answers)) {
+        const selected = document.querySelector(`input[name="${name}"]:checked`);
+        if (!selected) unanswered = true;
+        else if (selected.value === correct) score++;
+      }
+      const feedback = document.getElementById('quizFeedback');
+      if (unanswered) {
+        feedback.textContent = 'Ответь, пожалуйста, на все три вопроса.';
+        feedback.style.color = '#9a6714';
+      } else {
+        feedback.textContent = `Правильных ответов: ${score} из 3. ` +
+          (score === 3 ? 'Отлично! Ты разобрался(ась) в алгоритме.' : 'Повтори шаги и попробуй ещё раз.');
+        feedback.style.color = score === 3 ? '#236747' : '#9a6714';
+      }
+    });
+
+    buildDots();
+    showStep(0);
+  </script>
+</body>
+</html>
